@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Report — Long-Range Entanglement Dynamic Circuits</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar__title">
+        <div class="kicker">Interactive report</div>
+        <div class="title">Dynamic Circuit Strategies for Long-Range Entanglement</div>
+      </div>
+      <div class="topbar__actions">
+        <a class="btn" id="downloadReport" href="#" target="_blank" rel="noreferrer">Download EN report (.docx)</a>
+        <a class="btn btn--ghost" href="./content.json" target="_blank" rel="noreferrer">content.json</a>
+        <a class="btn btn--ghost" href="https://doi.org/10.1103/PRXQuantum.5.030339" target="_blank" rel="noreferrer">PRX 5.030339</a>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <div class="panel">
+          <label class="label" for="search">Search</label>
+          <input id="search" class="input" type="search" placeholder="Search text, captions, PRX tags…" />
+          <div class="muted small" id="stats"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel__title">Sections</div>
+          <nav id="nav" class="nav"></nav>
+        </div>
+
+        <div class="panel">
+          <div class="panel__title">PRX mapping filter</div>
+          <div class="chips" id="chips"></div>
+        </div>
+      </aside>
+
+      <section class="content">
+        <div id="hero" class="hero"></div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="card__title">Figures</div>
+            <div id="figures" class="figure-grid"></div>
+            <div class="table-note">Figures are loaded from the repository via raw URLs.</div>
+          </div>
+          <div class="card">
+            <div class="card__title">PRX mapping (Table 1)</div>
+            <div id="mapping"></div>
+          </div>
+        </div>
+
+        <div id="sections"></div>
+      </section>
+    </main>
+
+    <div id="lightbox" class="lightbox" aria-hidden="true">
+      <div class="lightbox__bg" data-close="1"></div>
+      <div class="lightbox__panel">
+        <button class="lightbox__close" data-close="1" aria-label="Close">✕</button>
+        <div class="lightbox__body">
+          <img id="lightboxImg" alt="" />
+          <div id="lightboxCap" class="lightbox__cap"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

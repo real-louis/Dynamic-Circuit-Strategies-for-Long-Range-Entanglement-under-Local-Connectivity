@@ -1,0 +1,324 @@
+{
+  "title": "Dynamic Circuit Strategies for Long-Range Entanglement under Local Connectivity",
+  "author": "HE, CHIEN-YI",
+  "affiliation": "Department of Applied Physics / Electronic Physics Program, National Chengchi University",
+  "date": "June 2026",
+  "repository_commit": "beece71",
+  "repo_raw_base": "https://raw.githubusercontent.com/real-louis/Dynamic-Circuit-Strategies-for-Long-Range-Entanglement-under-Local-Connectivity/main/",
+  "figures": [
+    {
+      "path": "figures/figure_chsh_comparison.png",
+      "caption": "CHSH S value: noiseless baseline and noisy estimates"
+    },
+    {
+      "path": "figures/crossover_simulation_with_ci.png",
+      "caption": "Noisy crossover with 95% Wilson CI bands"
+    },
+    {
+      "path": "figures/resources_cx_vs_L.png",
+      "caption": "Ideal CNOT resource scaling vs L"
+    },
+    {
+      "path": "figures/error_budget_bell_prep.png",
+      "caption": "Paper error-budget bound (Bell preparation task)"
+    },
+    {
+      "path": "figures/error_budget_lrcx.png",
+      "caption": "Paper error-budget bound (LRCX task)"
+    }
+  ],
+  "tables": {
+    "mapping": {
+      "headers": [
+        "Paper location",
+        "Relation",
+        "This report",
+        "Code / artifact"
+      ],
+      "rows": [
+        [
+          "Fig. 1(a), right — dynamic LRCX + feed-forward",
+          "Reproduce",
+          "§4.4, Table 4",
+          "prx/circuits/cnot_teleportation.py; pytest (35 passed)"
+        ],
+        [
+          "Fig. 1(a), middle — unitary ancilla + SWAP",
+          "Reproduce",
+          "§4.4, Table 4",
+          "build_cnot_unitary_swap(); build_cnot_unitary_ancilla_ic()"
+        ],
+        [
+          "Fig. 1(a), left — measure then classically correct",
+          "Reproduce",
+          "§4.4",
+          "build_cnot_postprocessing(); simulate_cnot_branches()"
+        ],
+        [
+          "Fig. 2(b), left — unitary GHZ chain",
+          "Reproduce",
+          "§4.4, Table 5",
+          "prx/circuits/ghz_preparation.py → build_ghz_unitary()"
+        ],
+        [
+          "Fig. 2(b), right — dynamic GHZ (O(1) 2Q depth)",
+          "Reproduce",
+          "§4.4, Table 5",
+          "build_ghz_dynamic(); count_ghz_dynamic_resources()"
+        ],
+        [
+          "Fig. 2(c) — gate / depth resources vs distance",
+          "Qualitative analogy",
+          "§4.1, Figure 1, Table 2",
+          "ephys/competition_suite.py → resource_formula_table.csv"
+        ],
+        [
+          "Sec. III — dynamic vs. unitary crossover (hardware)",
+          "Qualitative analogy",
+          "§4.3, Figure 3, §5",
+          "Static vs. swapping under shared Aer noise (Wilson 95% CI)"
+        ],
+        [
+          "Appendix B.2 — λ_tot error budget",
+          "Reproduce (analysis)",
+          "§4.5, Figures 4–5",
+          "scripts/error_budget_analysis.py (μ, λ_idle, λ_CNOT, λ_meas from paper)"
+        ],
+        [
+          "Bell measurement + Pauli feed-forward (throughout)",
+          "Mechanism imitation",
+          "§3.1, §4.3, Figure 7",
+          "ephys generate_swapping_circuit() — Strategy B (odd L)"
+        ],
+        [
+          "Static GHZ-style chain (unitary entangling sweep)",
+          "Conceptual analogy to Fig. 2(b) left",
+          "§3.1, §4.1, Figure 6",
+          "ephys generate_ladder_bell_circuit() — Strategy A"
+        ],
+        [
+          "Intro: dynamic circuits under local connectivity",
+          "Motivation (context)",
+          "§1",
+          "Ephys ladder endpoints e₀,e₁; not a hardware claim"
+        ]
+      ]
+    }
+  },
+  "sections": [
+    {
+      "id": "preface",
+      "title": "Preface",
+      "tagline": null,
+      "paragraphs": [
+        "Dynamic Circuit Strategies for Long-Range Entanglement under Local Connectivity",
+        "Static Chains, Entanglement Swapping, and PRX Quantum 5.030339 Reproduction",
+        "Reproducible simulation study (Qiskit Aer) — integrated graduate project report",
+        "HE, CHIEN-YI Prof. Hsiu-Chuan Hsu Department of Applied Physics / Electronic Physics Program, National Chengchi University June 2026"
+      ]
+    },
+    {
+      "id": "abstract",
+      "title": "Abstract",
+      "tagline": null,
+      "paragraphs": [
+        "We study long-range Bell-state preparation between endpoint qubits on a ladder connectivity graph where two-qubit gates are restricted to nearest-neighbor nodes (Ephys Challenge 2026). Strategy A (static GHZ chain, 2L−1 CNOTs) is compared with Strategy B (entanglement swapping, L CNOTs, odd L) under one shared Qiskit Aer noise model (8192 shots). After reading Bäumer et al. (PRX Quantum 5, 030339), we explicitly separate (i) competition-original ladder simulations, (ii) circuit reproduction of Fig. 1(a) and Fig. 2(b), and (iii) qualitative crossover / error-budget analysis mapped to Section III and Appendix B.2. Table 1 lists every paper location and whether we imitate its mechanism or reproduce its circuits.",
+        "Keywords: dynamic quantum circuits, long-range entanglement, entanglement swapping, ladder topology, NISQ"
+      ]
+    },
+    {
+      "id": "author-contributions",
+      "title": "Author contributions",
+      "tagline": "Ephys Challenge ladder circuits, resource formulas, and noisy crossover (original competition work).",
+      "paragraphs": [
+        "Independent reproduction of PRX Quantum Fig. 1(a) LRCX and Fig. 2(b) GHZ circuits (35 pytest checks).",
+        "Paper-mapped error-budget analysis (Appendix B.2) and qualitative crossover discussion (Section III)."
+      ]
+    },
+    {
+      "id": "1-introduction",
+      "title": "1. Introduction",
+      "tagline": null,
+      "paragraphs": [
+        "▌ PRX qualitative analogy — Introduction — dynamic circuits under local connectivity. Our ladder endpoints e₀,e₁ problem is competition-specific; we use the paper as the benchmark for measurement-based routing and for quantitative circuit reproduction.",
+        "Superconducting processors restrict two-qubit gates to nearest neighbors. Dynamic circuits use mid-circuit measurement and feed-forward for effectively constant-depth routing [Bäumer et al., PRX Quantum 5, 030339 (2024)]. On a ladder graph we ask: under fair noise, how do static GHZ-style Bell preparation and measurement-based entanglement swapping trade CNOT resources against endpoint fidelity?"
+      ]
+    },
+    {
+      "id": "2-bell-states-and-verification",
+      "title": "2. Bell states and verification",
+      "tagline": null,
+      "paragraphs": [
+        "Target |Φ+⟩ on endpoints (e₀,e₁) ↔ (q₀,q_L); P(00)+P(11) is the primary noisy diagnostic.",
+        "Ideal checks: statevector partial trace, CHSH correlators (Tsirelson bound 2√2).",
+        "Swapping uses Bell measurement + X/Z feed-forward (same Pauli-frame logic as PRX LRCX).",
+        "Static chain: H(e₀) → forward CNOT → backward CNOT uncomputes interior qubits.",
+        "Figure 1. Ladder topology and endpoint notation (competition setting).",
+        "Figure 2. Strategy A: single-rail static chain abstraction.",
+        "Figure 3. Zigzag Hamiltonian path on the ladder (reference topology)."
+      ]
+    },
+    {
+      "id": "3-1-circuit-families-ephys-challenge",
+      "title": "3.1 Circuit families (Ephys Challenge)",
+      "tagline": null,
+      "paragraphs": [
+        "▌ PRX mechanism (imitation) — Bell measurement + Pauli feed-forward throughout Fig. 1(a). Strategy B (entanglement swapping) implements the same teleportation-style frame corrections as the dynamic LRCX branch, adapted to ladder Bell preparation rather than gate teleportation.",
+        "Strategy A: H(e₀) → forward CX → reverse CX (2L−1 CNOTs). Strategy B: adjacent |Φ+⟩ pairs, Bell measurement, X/Z feed-forward (L CNOTs, odd L). Zigzag uses 2(L+1) qubits on full ladder edges (topology reference). Noisy runs use classical post-decode when if_test is unstable in Aer."
+      ]
+    },
+    {
+      "id": "3-2-shared-noise-model-ephys-simulations",
+      "title": "3.2 Shared noise model (Ephys simulations)",
+      "tagline": null,
+      "paragraphs": [
+        "Table 2. Shared Aer noise parameters (not PRX device calibration)."
+      ]
+    },
+    {
+      "id": "3-3-prx-quantum-5-030339-imitation-vs-reproduction-map",
+      "title": "3.3 PRX Quantum 5.030339: imitation vs. reproduction map",
+      "tagline": null,
+      "paragraphs": [
+        "The following table is the central reference for reviewers: each row cites a specific location in PRX Quantum 5, 030339 and states whether our work reproduces the published circuit/analysis or only imitates the underlying mechanism / draws a qualitative analogy. Reproduce = rebuilt circuits or formulas with automated tests; Imitate = same physics idea in a different task; Qualitative analogy = compare trends only (different noise calibration).",
+        "Table 1. Mapping to Bäumer et al., PRX Quantum 5, 030339 (2024): what we imitate vs. reproduce."
+      ]
+    },
+    {
+      "id": "3-4-prx-circuit-reproduction-code",
+      "title": "3.4 PRX circuit reproduction (code)",
+      "tagline": null,
+      "paragraphs": [
+        "▌ PRX reproduce — Fig. 1(a) and Fig. 2(b) — full circuit families. 35 pytest assertions on statevector fidelity and dynamic/unitary equivalence; see Table 4–5.",
+        "Listing 1. PRX equivalence tests.",
+        "cd prx",
+        "python3 -m pytest verify/test_equivalence.py -q # 35 passed"
+      ]
+    },
+    {
+      "id": "4-1-gate-resources",
+      "title": "4.1 Gate resources",
+      "tagline": null,
+      "paragraphs": [
+        "▌ PRX qualitative analogy — Fig. 2(c) — CNOT / depth scaling. Our ideal CNOT vs L plot mirrors the paper's resource comparison spirit; Strategy A aligns with unitary GHZ scaling (2L−1), swapping with lower CX for odd L.",
+        "Figure 4. Ideal CNOT count vs L.",
+        "Table 3. Resources at L=5 (from resource_formula_table.csv)."
+      ]
+    },
+    {
+      "id": "4-2-chsh-verification",
+      "title": "4.2 CHSH verification",
+      "tagline": null,
+      "paragraphs": [
+        "▌ Ephys Challenge (original) — —. Ideal CHSH sanity check for |Φ+⟩ endpoints (Ephys competition analysis).",
+        "Figure 5. CHSH correlator: ideal (flat at 2√2) vs noisy static/zigzag."
+      ]
+    },
+    {
+      "id": "4-3-noisy-bell-diagnostic-and-crossover",
+      "title": "4.3 Noisy Bell diagnostic and crossover",
+      "tagline": null,
+      "paragraphs": [
+        "▌ PRX qualitative analogy — Section III — dynamic vs. unitary crossover on hardware. Static (unitary-depth) vs. swapping (measurement-heavy) under Aer noise parallels the paper's short-distance unitary advantage and long-distance dynamic trend; parameters differ — trends only.",
+        "Table 4. P(00)+P(11) with 95% Wilson CI (8192 shots).",
+        "Figure 6. Noisy crossover with 95% CI (static, zigzag, swapping).",
+        "Primary comparison: static vs swapping on single-rail endpoints. Zigzag (two-rail) uses more qubits/CNOT but respects full ladder edges; included as topology reference, not primary claim."
+      ]
+    },
+    {
+      "id": "4-4-prx-circuit-reproduction-quantitative",
+      "title": "4.4 PRX circuit reproduction (quantitative)",
+      "tagline": null,
+      "paragraphs": [
+        "▌ PRX reproduce — Fig. 1(a) — LRCX dynamic / unitary / postprocessing. Table 5: minimum Bell fidelity over measurement branches (statevector simulation).",
+        "Table 5. LRCX Bell fidelity (statevector, min over measurement branches) — PRX Fig. 1(a).",
+        "▌ PRX reproduce — Fig. 2(b) — unitary vs dynamic GHZ preparation. Table 6: GHZ stabilizer fidelity from rebuilt circuits.",
+        "Table 6. GHZ preparation fidelity — PRX Fig. 2(b)."
+      ]
+    },
+    {
+      "id": "4-5-error-budget-analysis-prx-appendix-b-2",
+      "title": "4.5 Error-budget analysis (PRX Appendix B.2)",
+      "tagline": null,
+      "paragraphs": [
+        "▌ PRX reproduce — Appendix B.2 — λ_tot = t_idle λ_idle + N_CNOT λ_CNOT + N_meas λ_meas. We apply the paper's μ≈3.65, λ_idle=0.03, λ_CNOT=0.02, λ_meas=0.03 separately to Bell prep and LRCX tasks. These bounds use paper calibration — not our Aer model. Qualitative trend mapping only.",
+        "Figure 7. Error budget: Bell-state preparation tasks (Appendix B.2 mapping).",
+        "Figure 8. Error budget: long-range CNOT teleportation (Appendix B.2 mapping)."
+      ]
+    },
+    {
+      "id": "4-6-representative-circuits",
+      "title": "4.6 Representative circuits",
+      "tagline": null,
+      "paragraphs": [
+        "▌ PRX qualitative analogy — Fig. 2(b) left — unitary GHZ chain. Strategy A static chain at L=5.",
+        "Figure 9. Static chain (L=5).",
+        "▌ PRX mechanism (imitation) — Fig. 1(a) — Bell meas. + feed-forward. Strategy B swapping at L=3.",
+        "Figure 10. Entanglement swapping (L=3).",
+        "Listing 2. Full reproduction.",
+        "git clone https://github.com/real-louis/Dynamic-Circuit-Strategies-for-Long-Range-Entanglement-under-Local-Connectivity",
+        "cd Dynamic-Circuit-Strategies-for-Long-Range-Entanglement-under-Local-Connectivity",
+        "pip install -r requirements.txt",
+        "python3 scripts/reproduce.py"
+      ]
+    },
+    {
+      "id": "5-discussion-and-limitations",
+      "title": "5. Discussion and limitations",
+      "tagline": null,
+      "paragraphs": [
+        "Ephys ladder Bell preparation is our original competition scope; PRX sections are reproduced or mapped as in Table 1.",
+        "Simulation uses Qiskit Aer; PRX Quantum reports 101-qubit IBM hardware — do not equate absolute fidelities.",
+        "Error-budget curves (Appendix B.2) and P(00)+P(11) (Aer) use different calibrations — compare trends only.",
+        "Bell-state preparation ≠ LRCX gate teleportation; related via Bell measurement but distinct tasks.",
+        "Classical decode approximates feed-forward for fair noisy Ephys comparison."
+      ]
+    },
+    {
+      "id": "6-conclusion",
+      "title": "6. Conclusion",
+      "tagline": null,
+      "paragraphs": [
+        "We deliver a competition-format ladder Bell report extended with an explicit PRX Quantum 5.030339 map: circuits in Fig. 1(a) and Fig. 2(b) are reproduced with pytest; Appendix B.2 error budgets and Section III crossover phenomena are mapped qualitatively to our Ephys simulations."
+      ]
+    },
+    {
+      "id": "acknowledgments",
+      "title": "Acknowledgments",
+      "tagline": null,
+      "paragraphs": [
+        "I thank Prof. Hsiu-Chuan Hsu for guidance on this project and the Ephys Challenge 2026 organizers."
+      ]
+    },
+    {
+      "id": "7-data-and-code-availability",
+      "title": "7. Data and code availability",
+      "tagline": null,
+      "paragraphs": [
+        "Source code and CSV artifacts:",
+        "https://github.com/real-louis/Dynamic-Circuit-Strategies-for-Long-Range-Entanglement-under-Local-Connectivity",
+        "Reproduction reference commit: 8e433b6",
+        "Contact: louse2121@gmail.com"
+      ]
+    },
+    {
+      "id": "references",
+      "title": "References",
+      "tagline": null,
+      "paragraphs": [
+        "[1] E. Bäumer et al., Efficient Long-Range Entanglement Using Dynamic Circuits, PRX Quantum 5, 030339 (2024). https://doi.org/10.1103/PRXQuantum.5.030339",
+        "[2] IBM Quantum, Long-range entanglement with dynamic circuits. https://docs.quantum.ibm.com/",
+        "[3] Ephys Challenge 2026, National Chengchi University.",
+        "[4] M. A. Nielsen and I. L. Chuang, Quantum Computation and Quantum Information, Cambridge University Press."
+      ]
+    },
+    {
+      "id": "appendix-a-figure-index",
+      "title": "Appendix A. Figure index",
+      "tagline": null,
+      "paragraphs": [
+        "Table A1."
+      ]
+    }
+  ]
+}
