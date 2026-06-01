@@ -1,0 +1,8 @@
+qiskit>=1.0,<3.0
+qiskit-aer>=0.14
+matplotlib>=3.8
+numpy>=1.26
+reportlab>=4.0,<5
+python-docx>=1.1,<2
+pylatexenc>=2.10
+

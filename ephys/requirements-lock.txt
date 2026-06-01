@@ -1,0 +1,13 @@
+# Pinned dependency set for reproducible figures/CSV (one verified environment).
+# Generate full environment: pip freeze > full-freeze.txt
+# Python 3.13 was used when creating this lock; Python 3.11+ should work.
+#
+# Install: pip install -r requirements-lock.txt
+
+qiskit==2.3.0
+qiskit-aer==0.17.2
+matplotlib==3.10.7
+numpy==2.3.5
+scipy==1.16.3
+rustworkx==0.17.1
+

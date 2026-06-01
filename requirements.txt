@@ -1,0 +1,6 @@
+numpy>=1.26
+matplotlib>=3.8
+qiskit>=1.0,<3.0
+qiskit-aer>=0.14
+pytest>=7.4
+python-docx>=1.1,<2
